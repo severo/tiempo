@@ -95,6 +95,7 @@ def mkdir_p(path):
 parser = argparse.ArgumentParser(description='Analyze a time reporting CSV file.')
 parser.add_argument('filepath', type=str, help='the file to analyze')
 parser.add_argument('-O', '--output', metavar='path', default='/tmp', nargs='?', type=str, help='output directory (default: %(default)s)')
+parser.add_argument('-k', '--keyword', metavar='keyword', default='', nargs='?', help='report only for this keyword')
 args = parser.parse_args()
 
 outputdir = os.path.abspath(args.output)
