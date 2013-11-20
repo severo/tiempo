@@ -4,12 +4,19 @@
 """
 
 import argparse
-from collections import defaultdict
 import csv
-from datetime import date
-from datetime import datetime
 import errno
 import os
+
+from collections import defaultdict
+from collections import OrderedDict
+from curses.ascii import isascii
+from datetime import date
+from datetime import datetime
+from unicodedata import normalize
+
+def deaccentuate(t):
+	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower())
 
 class TimeReport:
 	"""A time report correspond to one line in CSV file"""
@@ -53,7 +60,7 @@ class TimeReports:
 					t.reportedTime = float(row[1])
 					# third field should be a CSV list of keywords
 					# (eg. "work,mail")
-					t.keywords = row[2].split(",")
+					t.keywords = deaccentuate(row[2]).split(",")
 					# fourth field should be a description (eg. "reading")
 					t.description = row[3]
 					# Add to timeReports list
@@ -69,11 +76,13 @@ class TimeReports:
 		return sum(r.reportedTime for r in self.reports)
 
 	def sumReportedTimePerMonth(self, keyword=""):
+		k = deaccentuate(keyword)
 		d = defaultdict(float)
 		for r in self.reports:
-			if (len(keyword) == 0 or keyword in r.keywords):
+			if (len(k) == 0 or k in r.keywords):
 				d[date(r.date.year,r.date.month,1)] += r.reportedTime
-		return d
+		od = OrderedDict(sorted(d.items()))
+		return od
 
 def mkdir_p(path):
     try:
