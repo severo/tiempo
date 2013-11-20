@@ -57,6 +57,12 @@ class TimeReports:
 					# Add to timeReports list
 					self.add(t)
 
+	def sortByDate(self):
+		self.reports = sorted(self.reports, key=lambda r: r.date)
+
+	def sortByReportedTime(self):
+		self.reports = sorted(self.reports, key=lambda r: r.reportedTime)
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
@@ -79,3 +85,5 @@ mkdir_p(args.output)
 
 timeReports = TimeReports(args.filepath)
 print str(len(timeReports)) + " time reports"
+timeReports.sortByDate()
+print str(timeReports)
