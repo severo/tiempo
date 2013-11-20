@@ -16,7 +16,7 @@ class TimeReport:
 		self.reportedTime = 0
 		self.keywords = []
 		self.description = ""
-	
+
 	def __str__(self):
 		return "Date: " + str(self.date) + ", Reported Time: " + \
 		       str(self.reportedTime) + ", Keywords: " + \
@@ -28,17 +28,17 @@ class TimeReports:
 		self.reports = []
 		if len(filepath):
 			self.appendCsvFile(filepath)
-	
+
 	"""Add a time report to list"""
 	def add(self, t):
 		self.reports.append(t)
 
 	def __len__(self):
 		return len(self.reports)
-	
+
 	def __str__(self):
 		return '\n'.join(map(str, self.reports))
-	
+
 	def appendCsvFile(self, filepath):
 		with open(filepath, 'rb') as csvfile:
 			reader = csv.reader(csvfile, delimiter='|')
