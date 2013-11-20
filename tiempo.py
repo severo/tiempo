@@ -23,7 +23,20 @@ class TimeReport:
 		       ', '.join(self.keywords) + ", Description: " + \
 		       self.description
 
+class TimeReports:
+	def __init__(self):
+		self.reports = []
+	
+	"""Add a time report to list"""
+	def add(self, t):
+		self.reports.append(t)
+
+	def len(self):
+		return len(self.reports)
+
 def readCsvFile(filepath):
+
+	timeReports = TimeReports()
 	with open(filepath, 'rb') as csvfile:
 		reader = csv.reader(csvfile, delimiter='|')
 		for row in reader:
@@ -38,6 +51,11 @@ def readCsvFile(filepath):
 				t.keywords = row[2].split(",")
 				# fourth field should be a description (eg. "reading")
 				t.description = row[3]
+
+				# Add to timeReports list
+				timeReports.add(t)
+	
+	return timeReports
 
 def mkdir_p(path):
     try:
@@ -58,4 +76,5 @@ resultbasename = os.path.basename(outputdir)
 print "Analyzing " + args.file + ". Output in " + outputdir
 
 mkdir_p(args.output)
-readCsvFile(args.file)
+timeReports = readCsvFile(args.file)
+print str(timeReports.len()) + " time reports"
