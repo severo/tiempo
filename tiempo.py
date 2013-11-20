@@ -84,17 +84,19 @@ class TimeReports:
 		od = OrderedDict(sorted(d.items()))
 		return od
 
+	def reportPerMonth(self, keyword=""):
+		od = self.sumReportedTimePerMonth(keyword)
+		s = "Reported time"
+		if len(keyword):
+			s += " for '" + keyword + "'"
+		for k, v in od.iteritems():
+			s += "\n* " + k.strftime("%b %Y") + ": " + str(v) + " hours"
+		return s
 
 parser = argparse.ArgumentParser(description='Analyze a time reporting CSV file.')
 parser.add_argument('filepath', type=str, help='the file to analyze')
 parser.add_argument('-k', '--keyword', metavar='keyword', default='', nargs='?', help='report only for this keyword')
 args = parser.parse_args()
 
-print "Analyzing " + args.filepath + ". Output in " + outputdir
-
-mkdir_p(args.output)
-
 timeReports = TimeReports(args.filepath)
-print str(len(timeReports)) + " time reports"
-timeReports.sortByDate()
-print str(timeReports.sumReportedTimePerMonth("mision"))
+print timeReports.reportPerMonth(args.keyword)
