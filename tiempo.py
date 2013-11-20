@@ -4,7 +4,9 @@
 """
 
 import argparse
+from collections import defaultdict
 import csv
+from datetime import date
 from datetime import datetime
 import errno
 import os
@@ -63,6 +65,16 @@ class TimeReports:
 	def sortByReportedTime(self):
 		self.reports = sorted(self.reports, key=lambda r: r.reportedTime)
 
+	def sumReportedTime(self):
+		return sum(r.reportedTime for r in self.reports)
+
+	def sumReportedTimePerMonth(self, keyword=""):
+		d = defaultdict(float)
+		for r in self.reports:
+			if (len(keyword) == 0 or keyword in r.keywords):
+				d[date(r.date.year,r.date.month,1)] += r.reportedTime
+		return d
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
@@ -86,4 +98,4 @@ mkdir_p(args.output)
 timeReports = TimeReports(args.filepath)
 print str(len(timeReports)) + " time reports"
 timeReports.sortByDate()
-print str(timeReports)
+print str(timeReports.sumReportedTimePerMonth("mision"))
