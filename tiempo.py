@@ -15,6 +15,8 @@ from datetime import date
 from datetime import datetime
 from unicodedata import normalize
 
+import matplotlib.pyplot as plt
+
 def deaccentuate(t):
 	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower())
 
@@ -53,18 +55,21 @@ class TimeReports:
 			reader = csv.reader(csvfile, delimiter='|')
 			for row in reader:
 				if len(row) == 4:
-					t = TimeReport()
-					# first field should be a date (eg. 2013/11/20)
-					t.date = datetime.strptime(row[0], '%Y/%m/%d').date()
-					# second field should be a reported time (eg. 0.75)
-					t.reportedTime = float(row[1])
-					# third field should be a CSV list of keywords
-					# (eg. "work,mail")
-					t.keywords = deaccentuate(row[2]).split(",")
-					# fourth field should be a description (eg. "reading")
-					t.description = row[3]
-					# Add to timeReports list
-					self.add(t)
+					try:
+						t = TimeReport()
+						# first field should be a date (eg. 2013/11/20)
+						t.date = datetime.strptime(row[0], '%Y/%m/%d').date()
+						# second field should be a reported time (eg. 0.75)
+						t.reportedTime = float(row[1])
+						# third field should be a CSV list of keywords
+						# (eg. "work,mail")
+						t.keywords = deaccentuate(row[2]).split(",")
+						# fourth field should be a description (eg. "reading")
+						t.description = row[3]
+						# Add to timeReports list
+						self.add(t)
+					except:
+						print row
 
 	def sortByDate(self):
 		self.reports = sorted(self.reports, key=lambda r: r.date)
@@ -92,6 +97,12 @@ class TimeReports:
 		for k, v in od.iteritems():
 			s += "\n* " + k.strftime("%b %Y") + ": " + str(v) + " hours"
 		return s
+
+	def graphPerMonth(self, keyword=""):
+		od = self.sumReportedTimePerMonth(keyword)
+		plt.plot(od.keys(), od.values(), 'r-')
+		plt.ylim(ymin = 0)
+		plt.show()
 
 parser = argparse.ArgumentParser(description='Analyze a time reporting CSV file.')
 parser.add_argument('filepath', type=str, help='the file to analyze')
