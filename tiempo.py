@@ -17,26 +17,28 @@ class TimeReport:
 		self.keywords = []
 		self.description = ""
 	
-	def toString(self):
+	def __str__(self):
 		return "Date: " + str(self.date) + ", Reported Time: " + \
 		       str(self.reportedTime) + ", Keywords: " + \
 		       ', '.join(self.keywords) + ", Description: " + \
 		       self.description
 
 class TimeReports:
-	def __init__(self):
+	def __init__(self, filepath=""):
 		self.reports = []
-	def __init__(self, filepath):
-		self.reports = []
-		self.appendCsvFile(filepath)
+		if len(filepath):
+			self.appendCsvFile(filepath)
 	
 	"""Add a time report to list"""
 	def add(self, t):
 		self.reports.append(t)
 
-	def len(self):
+	def __len__(self):
 		return len(self.reports)
-
+	
+	def __str__(self):
+		return '\n'.join(map(str, self.reports))
+	
 	def appendCsvFile(self, filepath):
 		with open(filepath, 'rb') as csvfile:
 			reader = csv.reader(csvfile, delimiter='|')
@@ -76,4 +78,4 @@ print "Analyzing " + args.filepath + ". Output in " + outputdir
 mkdir_p(args.output)
 
 timeReports = TimeReports(args.filepath)
-print str(timeReports.len()) + " time reports"
+print str(len(timeReports)) + " time reports"
