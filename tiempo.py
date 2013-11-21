@@ -20,6 +20,37 @@ import matplotlib.pyplot as plt
 def deaccentuate(t):
 	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower())
 
+class MonthReport:
+	def __init__(self):
+		self.months = []
+		self.reportedHours = []
+		self.dueHours = []
+		self.diffHours = []
+		self.cumulHours = []
+
+	def computeReportPerMonth(self, timeReports, keyword="", dueHoursTimeReports=None):
+		od = timeReports.sumReportedTimePerMonth(keyword)
+
+		self.months = od.keys()
+		self.reportedHours = od.values()
+
+		if dueHoursTimeReports:
+			odh = dueHoursTimeReports.sumReportedTimePerMonth(keyword)
+
+			# Extend both dictionnaries to cover the same months
+			emptyod = { k: 0 for k in od.keys() }
+			emptyodh = { k: 0 for k in odh.keys() }
+			emptyod.update(odh)
+			emptyodh.update(od)
+			od = OrderedDict(sorted(emptyodh.items()))
+			odh = OrderedDict(sorted(emptyod.items()))
+
+			self.months = od.keys()
+			self.reportedHours = od.values()
+			self.dueHours = odh.values()
+			self.diffHours = [self.reportedHours[i] - self.dueHours[i] for i in range(len(self.reportedHours))]
+			self.cumulHours = [sum(self.diffHours[:i]) for i in range(1, len(self.diffHours)+1)]
+
 class TimeReport:
 	"""A time report correspond to one line in CSV file"""
 	def __init__(self):
@@ -89,25 +120,41 @@ class TimeReports:
 		od = OrderedDict(sorted(d.items()))
 		return od
 
-	def reportPerMonth(self, keyword=""):
-		od = self.sumReportedTimePerMonth(keyword)
+	def reportPerMonth(self, keyword="", dueHoursTimeReports=None):
+		r = MonthReport()
+		r.computeReportPerMonth(self, keyword, dueHoursTimeReports)
+
 		s = "Reported time"
 		if len(keyword):
 			s += " for '" + keyword + "'"
-		for k, v in od.iteritems():
-			s += "\n* " + k.strftime("%b %Y") + ": " + str(v) + " hours"
+
+		for i in range(len(r.months)):
+			s += "\n* " + r.months[i].strftime("%b %Y") + ": " + str(r.reportedHours[i]) + " hours"
+			if dueHoursTimeReports:
+				s += ", due: " + str(r.dueHours[i]) + " hours, cumdiff: " + str(r.cumulHours[i])
 		return s
 
-	def graphPerMonth(self, keyword=""):
-		od = self.sumReportedTimePerMonth(keyword)
-		plt.plot(od.keys(), od.values(), 'r-')
-		plt.ylim(ymin = 0)
+	def graphPerMonth(self, keyword="", dueHoursTimeReports=None):
+		r = MonthReport()
+		r.computeReportPerMonth(self, keyword, dueHoursTimeReports)
+
+		plt.plot(r.months, r.reportedHours, 'b-')
+		if r.dueHours:
+			plt.plot(r.months, r.dueHours, 'r-')
+		if r.cumulHours:
+			plt.plot(r.months, r.cumulHours, 'k--')
 		plt.show()
 
 parser = argparse.ArgumentParser(description='Analyze a time reporting CSV file.')
 parser.add_argument('filepath', type=str, help='the file to analyze')
 parser.add_argument('-k', '--keyword', metavar='keyword', default='', nargs='?', help='report only for this keyword')
+parser.add_argument('-d', '--duehours', metavar='duehours', default='', nargs='?', help='csv file containing due hours in the same format than time reports')
 args = parser.parse_args()
 
 timeReports = TimeReports(args.filepath)
-print timeReports.reportPerMonth(args.keyword)
+#print timeReports.reportPerMonth(args.keyword)
+
+if (args.duehours):
+	dueHours = TimeReports(args.duehours)
+	print timeReports.reportPerMonth(args.keyword, dueHours)
+	timeReports.graphPerMonth(args.keyword, dueHours)
