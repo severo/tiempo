@@ -20,6 +20,16 @@ import matplotlib.pyplot as plt
 def deaccentuate(t):
 	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower()).strip()
 
+def intToDays(r):
+	hoursPerDay = 8
+	return round(r/hoursPerDay, 2)
+
+def toDays(r):
+	try:
+		return intToDays(r)
+	except:
+		return [intToDays(x) for x in r]
+
 class MonthReport:
 	def __init__(self):
 		self.months = []
@@ -50,6 +60,12 @@ class MonthReport:
 			self.dueHours = odh.values()
 			self.diffHours = [self.reportedHours[i] - self.dueHours[i] for i in range(len(self.reportedHours))]
 			self.cumulHours = [sum(self.diffHours[:i]) for i in range(1, len(self.diffHours)+1)]
+
+		if days:
+			self.reportedHours = toDays(self.reportedHours)
+			self.dueHours = toDays(self.dueHours)
+			self.diffHours = toDays(self.diffHours)
+			self.cumulHours = toDays(self.cumulHours)
 
 class TimeReport:
 	"""A time report correspond to one line in CSV file"""
@@ -120,7 +136,7 @@ class TimeReports:
 		od = OrderedDict(sorted(d.items()))
 		return od
 
-	def reportPerMonth(self, keyword="", dueHoursTimeReports=None):
+	def reportPerMonth(self, keyword="", dueHoursTimeReports=None, days=None):
 		r = MonthReport()
 		r.computeReportPerMonth(self, keyword, dueHoursTimeReports)
 
@@ -129,12 +145,19 @@ class TimeReports:
 			s += " for '" + keyword + "'"
 
 		for i in range(len(r.months)):
-			s += "\n* " + r.months[i].strftime("%b %Y") + ": " + str(r.reportedHours[i]) + " hours"
+			s += "\n* " + r.months[i].strftime("%b %Y") + ": "
+			if (days):
+				s += str(r.reportedHours[i]) + " d"
+			else:
+				s += str(r.reportedHours[i]) + " h"
 			if dueHoursTimeReports:
-				s += ", due: " + str(r.dueHours[i]) + " hours, cumdiff: " + str(r.cumulHours[i])
+				if (days):
+					s += ", due: " + str(r.dueHours[i]) + " d, cumdiff: " + str(r.cumulHours[i])
+				else:
+					s += ", due: " + str(r.dueHours[i]) + " h, cumdiff: " + str(r.cumulHours[i])
 		return s
 
-	def graphPerMonth(self, keyword="", dueHoursTimeReports=None):
+	def graphPerMonth(self, keyword="", dueHoursTimeReports=None, days=None):
 		r = MonthReport()
 		r.computeReportPerMonth(self, keyword, dueHoursTimeReports)
 
@@ -147,15 +170,21 @@ class TimeReports:
 
 parser = argparse.ArgumentParser(description='Analyze a time reporting CSV file.')
 parser.add_argument('filepath', type=str, help='the file to analyze')
-parser.add_argument('-k', '--keyword', metavar='keyword', default='', nargs='?', help='report only for this keyword')
 parser.add_argument('-d', '--duehours', metavar='duehours', default='', nargs='?', help='csv file containing due hours in the same format than time reports')
+parser.add_argument('-j', '--days', metavar='days', default=False, nargs='?', help='show reports in days (8 hours per day)')
+parser.add_argument('-k', '--keyword', metavar='keyword', default='', nargs='?', help='report only for this keyword')
 args = parser.parse_args()
 
 timeReports = TimeReports(args.filepath)
 
+days=args.days
+if (days != False):
+	days = True
+
 if (args.duehours):
 	dueHours = TimeReports(args.duehours)
-	print timeReports.reportPerMonth(args.keyword, dueHours)
-	timeReports.graphPerMonth(args.keyword, dueHours)
+	print timeReports.reportPerMonth(args.keyword, dueHours, days)
+	timeReports.graphPerMonth(args.keyword, dueHours, days)
 else:
-	print timeReports.reportPerMonth(args.keyword)
+	print timeReports.reportPerMonth(args.keyword, None, days)
+	timeReports.graphPerMonth(args.keyword, None, days)
