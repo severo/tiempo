@@ -18,7 +18,7 @@ from unicodedata import normalize
 import matplotlib.pyplot as plt
 
 def deaccentuate(t):
-	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower())
+	return filter(isascii, normalize('NFD', t.decode('utf-8')).encode('utf-8').lower()).strip()
 
 class MonthReport:
 	def __init__(self):
