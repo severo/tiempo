@@ -152,9 +152,10 @@ parser.add_argument('-d', '--duehours', metavar='duehours', default='', nargs='?
 args = parser.parse_args()
 
 timeReports = TimeReports(args.filepath)
-#print timeReports.reportPerMonth(args.keyword)
 
 if (args.duehours):
 	dueHours = TimeReports(args.duehours)
 	print timeReports.reportPerMonth(args.keyword, dueHours)
 	timeReports.graphPerMonth(args.keyword, dueHours)
+else:
+	print timeReports.reportPerMonth(args.keyword)
